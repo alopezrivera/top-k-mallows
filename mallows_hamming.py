@@ -55,13 +55,13 @@ def sample(m, n, *, theta=None, phi=None, s0=None):
     sample = np.zeros((m, n))
     theta, phi = mm.check_theta_phi(theta, phi)
 
-    facts_ = np.array([1, 1]+[0]*(n-1), dtype=np.float)
-    deran_num_ = np.array([1, 0]+[0]*(n-1), dtype=np.float)
+    facts_ = np.array([1, 1]+[0]*(n-1), dtype=np.float64)
+    deran_num_ = np.array([1, 0]+[0]*(n-1), dtype=np.float64)
     for i in range(2, n+1):
         facts_[i] = facts_[i-1] * i
         deran_num_[i] = deran_num_[i-1]*(i-1) + deran_num_[i-2]*(i-1);
-    hamm_count_ = np.array([ deran_num_[d]*facts_[n] / (facts_[d] * facts_[n - d]) for d in range(n+1)], dtype=np.float)
-    probsd = np.array([hamm_count_[d] * np.exp(-theta * d) for d in range(n+1)], dtype=np.float)
+    hamm_count_ = np.array([ deran_num_[d]*facts_[n] / (facts_[d] * facts_[n - d]) for d in range(n+1)], dtype=np.float64)
+    probsd = np.array([hamm_count_[d] * np.exp(-theta * d) for d in range(n+1)], dtype=np.float64)
 
     for m_ in range(m):
         target_distance = np.random.choice(n+1,p=probsd/probsd.sum())
@@ -117,7 +117,7 @@ def expected_dist_mm(n, theta=None, phi=None):
     """
     theta, phi = mm.check_theta_phi(theta, phi)
 
-    facts_ = np.array([1,1] + [0]*(n-1), dtype=np.float)
+    facts_ = np.array([1,1] + [0]*(n-1), dtype=np.float64)
     for i in range(2, n+1):
         facts_[i] = facts_[i-1] * i
     x_n_1 , x_n= 0, 0
@@ -177,7 +177,7 @@ def prob(sigma, sigma0, theta=None, phi=None):
     theta, phi = mm.check_theta_phi(theta, phi)
     d = distance(sigma, sigma0)
     n = len(sigma)
-    facts_ = np.array([1, 1] + [0]*(n-1), dtype=np.float)
+    facts_ = np.array([1, 1] + [0]*(n-1), dtype=np.float64)
 
     for i in range(2, n+1):
         facts_[i] = facts_[i-1] * i

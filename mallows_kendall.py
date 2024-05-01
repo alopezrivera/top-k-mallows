@@ -176,7 +176,7 @@ def ranking_to_v(sigma, k=None):
     n = len(sigma)
     if k is not None:
         sigma = sigma[:k]
-        sigma = np.concatenate((sigma, np.array([np.float(i) for i in range(n) if i not in sigma])))
+        sigma = np.concatenate((sigma, np.array([np.float64(i) for i in range(n) if i not in sigma])))
     V = []
     for j, sigma_j in enumerate(sigma):
         V_j = 0
