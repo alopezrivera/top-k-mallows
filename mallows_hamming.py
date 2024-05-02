@@ -33,7 +33,7 @@ def dist_at_uniform(n): return n
 
 #************ Sampling ************#
 
-def sample(m, n, *, theta=None, phi=None, s0=None):
+def sample(m, n, *, theta=None, phi=None, s0=None, precision: int = 50):
     """This function generates m permutations (rankings) according to Mallows Models.
         Parameters
         ----------
@@ -47,6 +47,9 @@ def sample(m, n, *, theta=None, phi=None, s0=None):
             Dispersion parameter phi
         s0: ndarray
             Consensus ranking
+        precision: int
+            Integer precision used in the calculation to obtain the
+            probability of each 
         Returns
         -------
         ndarray
@@ -56,7 +59,7 @@ def sample(m, n, *, theta=None, phi=None, s0=None):
     theta, phi = mm.check_theta_phi(theta, phi)
 
     # Set the precision
-    mp.dps = 50
+    mp.dps = precision
 
     # Calculate probability distribution over distances
     facts_ = mp.zeros(n+1, 1)
@@ -68,7 +71,8 @@ def sample(m, n, *, theta=None, phi=None, s0=None):
         deran_num_[i] = deran_num_[i-1]*(i-1) + deran_num_[i-2]*(i-1)
     hamm_count_ = [deran_num_[d]*facts_[n] / (facts_[d] * facts_[n - d]) for d in range(n+1)]
     probsd = [hamm_count_[d] * mp.exp(-theta * d) for d in range(n+1)]
-    distance_probabilities = np.array(probsd, dtype=float) / float(mp.fsum(probsd))
+    probsd = [p / mp.fsum(probsd) for p in probsd]
+    distance_probabilities = np.array(probsd, dtype=float)
 
     # Draw sample
     for m_ in range(m):
