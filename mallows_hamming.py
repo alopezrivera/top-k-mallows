@@ -2,7 +2,7 @@ import numpy as np
 import itertools as it
 from scipy.optimize import linear_sum_assignment
 import mallows_model as mm
-
+from mpmath import mp
 
 
 #************* Distance **************#
@@ -55,20 +55,27 @@ def sample(m, n, *, theta=None, phi=None, s0=None):
     sample = np.zeros((m, n))
     theta, phi = mm.check_theta_phi(theta, phi)
 
-    facts_ = np.array([1, 1]+[0]*(n-1), dtype=np.float64)
-    deran_num_ = np.array([1, 0]+[0]*(n-1), dtype=np.float64)
+    # Set the precision
+    mp.dps = 50
+
+    # Calculate probability distribution over distances
+    facts_ = mp.zeros(n+1, 1)
+    deran_num_ = mp.zeros(n+1, 1)
+    facts_[0] = mp.mpf('1'); facts_[1] = mp.mpf('1')
+    deran_num_[0] = mp.mpf('1'); deran_num_[1] = mp.mpf('0')
     for i in range(2, n+1):
         facts_[i] = facts_[i-1] * i
-        deran_num_[i] = deran_num_[i-1]*(i-1) + deran_num_[i-2]*(i-1);
-    hamm_count_ = np.array([ deran_num_[d]*facts_[n] / (facts_[d] * facts_[n - d]) for d in range(n+1)], dtype=np.float64)
-    probsd = np.array([hamm_count_[d] * np.exp(-theta * d) for d in range(n+1)], dtype=np.float64)
+        deran_num_[i] = deran_num_[i-1]*(i-1) + deran_num_[i-2]*(i-1)
+    hamm_count_ = [deran_num_[d]*facts_[n] / (facts_[d] * facts_[n - d]) for d in range(n+1)]
+    probsd = [hamm_count_[d] * mp.exp(-theta * d) for d in range(n+1)]
+    distance_probabilities = np.array(probsd, dtype=float) / float(mp.fsum(probsd))
 
+    # Draw sample
     for m_ in range(m):
-        target_distance = np.random.choice(n+1,p=probsd/probsd.sum())
+        target_distance = np.random.choice(n+1,p=distance_probabilities)
         sample[m_,:] = sample_at_dist(n, target_distance, s0)
 
     return sample
-
 
 def sample_at_dist(n, dist, sigma0=None):
     """This function randomly generates a permutation with length n at distance
